@@ -1,0 +1,4 @@
+This is a fallback corpus for offline experiments.
+Replace this file with a larger text corpus if OpenWebText cannot be streamed.
+Language models learn next-token prediction over byte-level tokens.
+This project compares a baseline transformer and a split-stream hybrid model.

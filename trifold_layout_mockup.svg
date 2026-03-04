@@ -1,0 +1,77 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1440" height="1080" viewBox="0 0 1440 1080">
+  <rect width="1440" height="1080" fill="#f6f7fb"/>
+  <rect x="15" y="15" width="1410" height="1050" fill="none" stroke="#6b7280" stroke-width="4"/>
+
+  <rect x="15" y="15" width="360" height="1050" fill="#ffffff" stroke="#d0d6e2" stroke-width="2"/>
+  <rect x="375" y="15" width="720" height="1050" fill="#ffffff" stroke="#d0d6e2" stroke-width="2"/>
+  <rect x="1095" y="15" width="330" height="1050" fill="#ffffff" stroke="#d0d6e2" stroke-width="2"/>
+
+  <rect x="15" y="15" width="1410" height="135" fill="#e8eef9" stroke="#d0d6e2" stroke-width="2"/>
+  <text x="720" y="85" text-anchor="middle" font-size="48" font-weight="700" fill="#1f4e79">Split-Stream + KAN Hybrid LM</text>
+  <text x="720" y="120" text-anchor="middle" font-size="24" fill="#1f2937">Claim: Better efficiency-performance tradeoff on consumer hardware</text>
+
+  <!-- Left panel -->
+  <rect x="30" y="165" width="330" height="285" fill="#f9fafb" stroke="#d0d6e2"/>
+  <text x="195" y="200" text-anchor="middle" font-size="24" font-weight="700">Problem + Hypothesis</text>
+  <text x="45" y="240" font-size="18">• Memory scales poorly with long context</text>
+  <text x="45" y="270" font-size="18">• Hybrid splits local vs long-range</text>
+  <text x="45" y="300" font-size="18">• Goal: lower memory, stable perplexity</text>
+
+  <rect x="30" y="465" width="330" height="315" fill="#f9fafb" stroke="#d0d6e2"/>
+  <text x="195" y="500" text-anchor="middle" font-size="24" font-weight="700">Architecture Diagram</text>
+  <text x="45" y="545" font-size="18">Token Embedding</text>
+  <text x="45" y="575" font-size="18">→ Local Attention Stream</text>
+  <text x="45" y="605" font-size="18">→ SSM Stream</text>
+  <text x="45" y="635" font-size="18">→ KAN Fusion</text>
+  <text x="45" y="665" font-size="18">→ LM Head</text>
+
+  <rect x="30" y="795" width="330" height="255" fill="#f9fafb" stroke="#d0d6e2"/>
+  <text x="195" y="830" text-anchor="middle" font-size="24" font-weight="700">Controls Table</text>
+  <text x="45" y="875" font-size="18">• Same parameter budget</text>
+  <text x="45" y="905" font-size="18">• Same data/splits/seeds</text>
+  <text x="45" y="935" font-size="18">• Same optimizer/LR/steps</text>
+
+  <!-- Center charts -->
+  <rect x="390" y="165" width="330" height="210" fill="#fff" stroke="#94a3b8"/>
+  <rect x="750" y="165" width="330" height="210" fill="#fff" stroke="#94a3b8"/>
+  <rect x="390" y="405" width="330" height="210" fill="#fff" stroke="#94a3b8"/>
+  <rect x="750" y="405" width="330" height="210" fill="#fff" stroke="#94a3b8"/>
+
+  <text x="555" y="195" text-anchor="middle" font-size="18" font-weight="700">Chart 1: Memory vs Context</text>
+  <text x="915" y="195" text-anchor="middle" font-size="18" font-weight="700">Chart 2: PPL vs Context</text>
+  <text x="555" y="435" text-anchor="middle" font-size="18" font-weight="700">Chart 3: Efficiency Frontier</text>
+  <text x="915" y="435" text-anchor="middle" font-size="18" font-weight="700">Chart 4: KAN vs Non-KAN</text>
+
+  <line x1="420" y1="345" x2="690" y2="240" stroke="#3b82f6" stroke-width="3"/>
+  <line x1="420" y1="320" x2="690" y2="290" stroke="#ef4444" stroke-width="3"/>
+  <line x1="780" y1="345" x2="1050" y2="260" stroke="#3b82f6" stroke-width="3"/>
+  <line x1="780" y1="320" x2="1050" y2="305" stroke="#ef4444" stroke-width="3"/>
+  <line x1="420" y1="585" x2="690" y2="470" stroke="#3b82f6" stroke-width="3"/>
+  <line x1="780" y1="585" x2="1050" y2="495" stroke="#10b981" stroke-width="3"/>
+
+  <rect x="390" y="645" width="690" height="120" fill="#eef6ff" stroke="#d0d6e2"/>
+  <text x="410" y="680" font-size="20" font-weight="700">Key Numbers</text>
+  <text x="410" y="710" font-size="18">• Hybrid beats baseline on val perplexity</text>
+  <text x="410" y="735" font-size="18">• KAN beats non-KAN in controlled comparison</text>
+  <text x="410" y="760" font-size="18">• Wordle avg guesses improved</text>
+
+  <!-- Right panel -->
+  <rect x="1110" y="165" width="300" height="300" fill="#f9fafb" stroke="#d0d6e2"/>
+  <text x="1260" y="200" text-anchor="middle" font-size="22" font-weight="700">Chart 5: Ablations</text>
+  <rect x="1160" y="380" width="40" height="55" fill="#93c5fd"/>
+  <rect x="1230" y="350" width="40" height="85" fill="#60a5fa"/>
+  <rect x="1300" y="325" width="40" height="110" fill="#2563eb"/>
+
+  <rect x="1110" y="480" width="300" height="255" fill="#f9fafb" stroke="#d0d6e2"/>
+  <text x="1260" y="515" text-anchor="middle" font-size="22" font-weight="700">Chart 6: Wordle</text>
+  <rect x="1180" y="650" width="55" height="60" fill="#ef4444"/>
+  <rect x="1270" y="620" width="55" height="90" fill="#10b981"/>
+
+  <rect x="1110" y="750" width="300" height="300" fill="#f9fafb" stroke="#d0d6e2"/>
+  <text x="1260" y="785" text-anchor="middle" font-size="22" font-weight="700">Conclusion + QR</text>
+  <text x="1130" y="830" font-size="18">• Impact summary</text>
+  <text x="1130" y="860" font-size="18">• Limits + next steps</text>
+  <text x="1130" y="890" font-size="18">• QR to code/results</text>
+  <rect x="1310" y="900" width="80" height="80" fill="#fff" stroke="#111827" stroke-width="2"/>
+  <text x="1350" y="948" text-anchor="middle" font-size="22" font-weight="700">QR</text>
+</svg>

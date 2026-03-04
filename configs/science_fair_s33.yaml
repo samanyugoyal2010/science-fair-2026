@@ -1,0 +1,39 @@
+seeds: [33]
+contexts: [1024]
+
+data:
+  train_chars: 2000000
+  val_chars: 200000
+  data_seed: 42
+  local_fallback_path: data/local_corpus.txt
+
+train:
+  batch_size: 8
+  max_steps: 500
+  eval_interval: 100
+  eval_batches: 20
+  lr: 0.0003
+  weight_decay: 0.01
+  grad_clip: 1.0
+  num_workers: 0
+
+transformer:
+  vocab_size: 257
+  d_model: 256
+  n_heads: 8
+  n_layers: 6
+  dropout: 0.1
+
+hybrid:
+  vocab_size: 257
+  d_model: 256
+  n_heads: 8
+  n_local_layers: 3
+  n_ssm_layers: 3
+  ssm_state_size: 64
+  dropout: 0.1
+  local_window: 128
+  fusion_mode: kan
+  kan_basis: 8
+  disable_local_stream: false
+  disable_ssm_stream: false

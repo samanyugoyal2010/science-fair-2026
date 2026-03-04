@@ -1,0 +1,4 @@
+run_id,ablation_name,seed,context_len,val_ppl,peak_mem_mb
+local_only_ctx1024_s33,local_only,33,1024,16.152709441727932,4466.21875
+ssm_only_ctx1024_s33,ssm_only,33,1024,14.72665414493837,4468.21875
+sum_fusion_ctx1024_s33,sum_fusion,33,1024,9.97945998661171,4506.265625
