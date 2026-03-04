@@ -40,19 +40,8 @@ def test_aggregate_creates_outdir_and_uses_out_root(tmp_path: Path, monkeypatch)
 
     pd.DataFrame(
         [
-            {
-                "run_id": "r1",
-                "model_type": "baseline",
-                "seed": 1,
-                "context_len": 256,
-                "params_total": 10,
-                "train_steps": 1,
-                "val_loss": 1.0,
-                "val_ppl": 2.0,
-                "peak_mem_mb": 100.0,
-                "step_time_ms": 10.0,
-                "toks_per_sec": 1000.0,
-            }
+            {"run_id": "r1", "model_type": "baseline", "seed": 1, "context_len": 256, "params_total": 10, "train_steps": 1, "val_loss": 1.0, "val_ppl": 2.0, "peak_mem_mb": 100.0, "step_time_ms": 10.0, "toks_per_sec": 1000.0},
+            {"run_id": "r2", "model_type": "hybrid", "seed": 1, "context_len": 256, "params_total": 10, "train_steps": 1, "val_loss": 0.9, "val_ppl": 1.8, "peak_mem_mb": 110.0, "step_time_ms": 12.0, "toks_per_sec": 900.0},
         ]
     ).to_csv(runs, index=False)
 
@@ -85,6 +74,8 @@ def test_aggregate_creates_outdir_and_uses_out_root(tmp_path: Path, monkeypatch)
 
     assert out.exists()
     assert (out.parent / "ablation_summary.csv").exists()
+    assert (out.parent / "paired_deltas.csv").exists()
+    assert (out.parent / "paired_summary.csv").exists()
 
 
 def test_ensure_csv_allows_filename_only_out(tmp_path: Path, monkeypatch):
@@ -102,3 +93,51 @@ def test_sequence_dataset_too_short_has_zero_length_and_safe_eval():
     val_loss, val_ppl = evaluate_model(model, ds, batch_size=4, device=torch.device("cpu"), max_batches=2)
     assert val_loss == 0.0
     assert val_ppl == 1.0
+
+
+def test_aggregate_raises_for_empty_runs(tmp_path: Path, monkeypatch):
+    runs = tmp_path / "runs.csv"
+    pd.DataFrame(
+        columns=[
+            "run_id",
+            "model_type",
+            "seed",
+            "context_len",
+            "val_ppl",
+            "peak_mem_mb",
+            "toks_per_sec",
+        ]
+    ).to_csv(runs, index=False)
+    out = tmp_path / "summary.csv"
+    monkeypatch.setattr("sys.argv", ["aggregate_results.py", "--runs", str(runs), "--out", str(out), "--ablations", ""])
+    with pytest.raises(ValueError, match="no rows"):
+        aggregate_main()
+
+
+def test_aggregate_raises_for_duplicate_run_id(tmp_path: Path, monkeypatch):
+    runs = tmp_path / "runs.csv"
+    pd.DataFrame(
+        [
+            {"run_id": "dup", "model_type": "baseline", "seed": 1, "context_len": 256, "val_ppl": 2.0, "peak_mem_mb": 100.0, "toks_per_sec": 1000.0},
+            {"run_id": "dup", "model_type": "hybrid", "seed": 1, "context_len": 256, "val_ppl": 1.9, "peak_mem_mb": 110.0, "toks_per_sec": 900.0},
+        ]
+    ).to_csv(runs, index=False)
+    out = tmp_path / "summary.csv"
+    monkeypatch.setattr("sys.argv", ["aggregate_results.py", "--runs", str(runs), "--out", str(out), "--ablations", ""])
+    with pytest.raises(ValueError, match="Duplicate run_id"):
+        aggregate_main()
+
+
+def test_aggregate_raises_for_unpaired_seed(tmp_path: Path, monkeypatch):
+    runs = tmp_path / "runs.csv"
+    pd.DataFrame(
+        [
+            {"run_id": "b1", "model_type": "baseline", "seed": 1, "context_len": 256, "val_ppl": 2.0, "peak_mem_mb": 100.0, "toks_per_sec": 1000.0},
+            {"run_id": "b2", "model_type": "baseline", "seed": 2, "context_len": 256, "val_ppl": 2.1, "peak_mem_mb": 101.0, "toks_per_sec": 990.0},
+            {"run_id": "h1", "model_type": "hybrid", "seed": 1, "context_len": 256, "val_ppl": 1.9, "peak_mem_mb": 110.0, "toks_per_sec": 900.0},
+        ]
+    ).to_csv(runs, index=False)
+    out = tmp_path / "summary.csv"
+    monkeypatch.setattr("sys.argv", ["aggregate_results.py", "--runs", str(runs), "--out", str(out), "--ablations", ""])
+    with pytest.raises(ValueError, match="Inconsistent paired runs"):
+        aggregate_main()

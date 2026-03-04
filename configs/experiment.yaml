@@ -9,8 +9,8 @@ data:
 
 train:
   batch_size: 8
-  max_steps: 200
-  eval_interval: 100
+  max_steps: 1000
+  eval_interval: 200
   eval_batches: 20
   lr: 0.0003
   weight_decay: 0.01
