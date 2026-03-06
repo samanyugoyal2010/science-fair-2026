@@ -87,8 +87,8 @@ export default function Conclusion() {
             </h2>
             <p className="text-muted-foreground mt-3 max-w-xl text-pretty leading-relaxed">
               The results support the hypothesis that hybrid architectures can provide meaningful
-              improvements in language modeling performance while maintaining comparable
-              computational characteristics.
+              improvements in language modeling performance while reducing memory usage by roughly
+              80–84% compared to the transformer baseline.
             </p>
           </div>
 
