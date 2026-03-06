@@ -69,7 +69,7 @@ python3 -m src.eval.cloze_eval --pairs-file path/to/pairs.tsv
 
 ---
 
-### 3. Wordle-style reasoning eval
+### 3. Wordle-style exploratory demo
 
 **Command:**
 
@@ -111,7 +111,7 @@ You can increase `--games` or change `--seed` to explore different target sets.
 
 ---
 
-### 4. Story generation (qualitative coherence)
+### 4. Story generation (exploratory qualitative demo)
 
 **Command:**
 
@@ -143,7 +143,7 @@ python3 -m src.eval.story_eval \
 
 ---
 
-### 5. Tic-tac-toe (best of 3: baseline vs hybrid)
+### 5. Tic-tac-toe (exploratory gameplay demo)
 
 **Command:**
 
@@ -167,9 +167,6 @@ After running the above:
 
 - **Held-out perplexity:** better = **lower `ppl`** (and check the ratio line).
 - **Cloze:** better = **higher `avg_logp`** (and check the `diff` line).
-- **Wordle:** better = **higher `win_rate`**, **lower `avg_guesses`**.
-- **Story:** better = **more coherent, less gibberish** (your human judgment).
-- **Tic-tac-toe:** better = **more wins** in the best-of-3 match.
+- **Wordle / Story / Tic-tac-toe:** exploratory demonstrations only, not primary evidence for the core LM architecture claim.
 
 You can copy these results into your report/poster as a table comparing baseline vs hybrid across all evals.
-

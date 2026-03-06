@@ -1,5 +1,8 @@
+import csv
+import os
 import random
 from dataclasses import dataclass
+from typing import Optional
 
 import numpy as np
 import torch
@@ -31,7 +34,7 @@ def count_params(model: torch.nn.Module) -> int:
     return sum(p.numel() for p in model.parameters() if p.requires_grad)
 
 
-def train_model(model, train_ds, val_ds, cfg: TrainConfig, device: torch.device) -> dict:
+def train_model(model, train_ds, val_ds, cfg: TrainConfig, device: torch.device, loss_log_path: Optional[str] = None) -> dict:
     model = model.to(device)
     model.train()
     loader = DataLoader(train_ds, batch_size=cfg.batch_size, shuffle=True, drop_last=True, num_workers=cfg.num_workers)
@@ -41,6 +44,14 @@ def train_model(model, train_ds, val_ds, cfg: TrainConfig, device: torch.device)
             "Increase dataset size or reduce batch_size when drop_last=True."
         )
     opt = torch.optim.AdamW(model.parameters(), lr=cfg.lr, weight_decay=cfg.weight_decay)
+
+    loss_writer = None
+    loss_file = None
+    if loss_log_path:
+        os.makedirs(os.path.dirname(loss_log_path) or ".", exist_ok=True)
+        loss_file = open(loss_log_path, "w", newline="")
+        loss_writer = csv.writer(loss_file)
+        loss_writer.writerow(["step", "loss"])
 
     step = 0
     running_loss = 0.0
@@ -73,6 +84,8 @@ def train_model(model, train_ds, val_ds, cfg: TrainConfig, device: torch.device)
             step_times.append(elapsed_ms)
             running_loss += loss.item()
             step += 1
+            if loss_writer:
+                loss_writer.writerow([step, f"{loss.item():.6f}"])
             sampled_peak_mb = max(sampled_peak_mb, get_current_memory_mb(device))
             if step == 1 or step % max(1, cfg.eval_interval) == 0 or step == cfg.max_steps:
                 steps_per_epoch = max(1, len(loader))
@@ -83,6 +96,9 @@ def train_model(model, train_ds, val_ds, cfg: TrainConfig, device: torch.device)
                     f"epoch~={epoch_progress:.4f} "
                     f"loss={loss.item():.4f}"
                 )
+
+    if loss_file:
+        loss_file.close()
 
     val_loss, val_ppl = evaluate_model(model, val_ds, cfg.batch_size, device, cfg.eval_batches)
     peak_mem_mb = get_peak_memory_mb(device, sampled_peak_mb=sampled_peak_mb)

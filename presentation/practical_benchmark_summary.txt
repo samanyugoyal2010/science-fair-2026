@@ -1,0 +1,3 @@
+device=mps
+quality_target_val_ppl<=8.0
+decision=no winner: no model met quality target (val_ppl <= 8.0)

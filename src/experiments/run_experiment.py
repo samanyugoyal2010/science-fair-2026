@@ -1,6 +1,7 @@
 import argparse
 import csv
 import os
+from datetime import datetime
 from dataclasses import asdict
 
 import torch
@@ -13,9 +14,11 @@ from src.train.train import TrainConfig, count_params, set_seed, train_model
 
 
 RUNS_HEADER = [
+    "run_group_id",
     "run_id",
     "model_type",
     "seed",
+    "device",
     "context_len",
     "params_total",
     "train_steps",
@@ -63,12 +66,19 @@ def main():
     parser.add_argument("--config", default="configs/experiment.yaml")
     parser.add_argument("--out", default="results/raw/runs.csv")
     parser.add_argument("--save-dir", default=None)
+    parser.add_argument("--run-group-id", default=None, help="Optional immutable batch ID for this run set.")
+    parser.add_argument("--device", default="auto", choices=["auto", "cpu", "mps", "cuda"])
     args = parser.parse_args()
 
     with open(args.config, "r", encoding="utf-8") as f:
         cfg = yaml.safe_load(f)
 
-    device = torch.device("mps" if torch.backends.mps.is_available() else "cpu")
+    if args.device == "auto":
+        resolved_device = "cuda" if torch.cuda.is_available() else ("mps" if torch.backends.mps.is_available() else "cpu")
+    else:
+        resolved_device = args.device
+    device = torch.device(resolved_device)
+    run_group_id = args.run_group_id or datetime.now().strftime("rg_%Y%m%d_%H%M%S")
     train_cfg = TrainConfig(**cfg["train"])
     ensure_csv(args.out, RUNS_HEADER)
     if args.save_dir:
@@ -89,7 +99,8 @@ def main():
             print(f"[run] model=baseline seed={seed} context={context_len} starting")
             set_seed(seed)
             model = GPTBaseline(base_cfg)
-            res = train_model(model, train_ds, val_ds, train_cfg, device)
+            bl_loss_log = os.path.join(args.save_dir, f"loss_baseline_ctx{context_len}_s{seed}.csv") if args.save_dir else None
+            res = train_model(model, train_ds, val_ds, train_cfg, device, loss_log_path=bl_loss_log)
             print(
                 f"[run] model=baseline seed={seed} context={context_len} "
                 f"done val_ppl={res['val_ppl']:.4f} peak_mem_mb={res['peak_mem_mb']:.2f} "
@@ -98,9 +109,11 @@ def main():
             append_row(
                 args.out,
                 {
+                    "run_group_id": run_group_id,
                     "run_id": f"baseline_ctx{context_len}_s{seed}",
                     "model_type": "baseline",
                     "seed": seed,
+                    "device": device.type,
                     "context_len": context_len,
                     "params_total": count_params(model),
                     **res,
@@ -121,7 +134,8 @@ def main():
             print(f"[run] model=hybrid seed={seed} context={context_len} starting")
             set_seed(seed)
             hmodel = SplitStreamHybridLM(hy_cfg)
-            hres = train_model(hmodel, train_ds, val_ds, train_cfg, device)
+            hy_loss_log = os.path.join(args.save_dir, f"loss_hybrid_ctx{context_len}_s{seed}.csv") if args.save_dir else None
+            hres = train_model(hmodel, train_ds, val_ds, train_cfg, device, loss_log_path=hy_loss_log)
             print(
                 f"[run] model=hybrid seed={seed} context={context_len} "
                 f"done val_ppl={hres['val_ppl']:.4f} peak_mem_mb={hres['peak_mem_mb']:.2f} "
@@ -130,9 +144,11 @@ def main():
             append_row(
                 args.out,
                 {
+                    "run_group_id": run_group_id,
                     "run_id": f"hybrid_ctx{context_len}_s{seed}",
                     "model_type": "hybrid",
                     "seed": seed,
+                    "device": device.type,
                     "context_len": context_len,
                     "params_total": count_params(hmodel),
                     **hres,

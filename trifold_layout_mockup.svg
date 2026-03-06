@@ -51,9 +51,9 @@
 
   <rect x="390" y="645" width="690" height="120" fill="#eef6ff" stroke="#d0d6e2"/>
   <text x="410" y="680" font-size="20" font-weight="700">Key Numbers</text>
-  <text x="410" y="710" font-size="18">• Hybrid beats baseline on val perplexity</text>
-  <text x="410" y="735" font-size="18">• KAN beats non-KAN in controlled comparison</text>
-  <text x="410" y="760" font-size="18">• Wordle avg guesses improved</text>
+  <text x="410" y="710" font-size="18">• Quality improved in this pilot setting (lower val perplexity)</text>
+  <text x="410" y="735" font-size="18">• Memory and speed show tradeoffs, not a single winner</text>
+  <text x="410" y="760" font-size="18">• Wordle/story/tic-tac-toe are exploratory demos only</text>
 
   <!-- Right panel -->
   <rect x="1110" y="165" width="300" height="300" fill="#f9fafb" stroke="#d0d6e2"/>
