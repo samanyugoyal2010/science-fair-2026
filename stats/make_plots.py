@@ -3,9 +3,22 @@ import os
 import matplotlib.pyplot as plt
 import pandas as pd
 
+# Cleaner look: readable font sizes and simpler styling
+plt.rcParams.update({
+    "font.size": 11,
+    "axes.titlesize": 14,
+    "axes.labelsize": 12,
+    "legend.fontsize": 10,
+    "xtick.labelsize": 10,
+    "ytick.labelsize": 10,
+    "axes.spines.top": False,
+    "axes.spines.right": False,
+})
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 RUNS_PATH = os.path.join(ROOT, "results", "raw", "runs_submission.csv")
+ABLATIONS_SUBMISSION_PATH = os.path.join(ROOT, "results", "raw", "ablations_submission.csv")
+ABLATIONS_PATH = os.path.join(ROOT, "results", "raw", "ablations.csv")
 ABLATIONS_S33_PATH = os.path.join(ROOT, "results", "raw", "ablations_s33.csv")
 CHECKPOINT_DIR = os.path.join(ROOT, "results", "checkpoints", "science-fair")
 OUTDIR = os.path.join(ROOT, "stats")
@@ -35,9 +48,9 @@ def plot_ppl_vs_context():
             capsize=4,
             color=color,
         )
-    ax.set_xlabel("Context length (tokens)")
-    ax.set_ylabel("Validation perplexity (PPL)")
-    ax.set_title("Perplexity vs Context Length (mean ± std, 3 seeds)")
+    ax.set_xlabel("Context length")
+    ax.set_ylabel("Perplexity")
+    ax.set_title("Perplexity vs context")
     ax.legend(title="Model")
     ax.grid(alpha=0.3, linestyle="--", linewidth=0.5)
     fig.tight_layout()
@@ -76,9 +89,9 @@ def plot_paired_delta():
         width=0.6,
     )
     ax.axhline(0.0, color="black", linewidth=0.8, linestyle="--")
-    ax.set_xlabel("Context length (tokens)")
-    ax.set_ylabel("ΔPPL (hybrid − baseline)")
-    ax.set_title("Paired PPL Delta vs Context (hybrid − baseline)")
+    ax.set_xlabel("Context length")
+    ax.set_ylabel("PPL change (hybrid − baseline)")
+    ax.set_title("Perplexity improvement by context")
     for bar, n in zip(bars, summary["count"]):
         # place n label just above the top of the bar (toward zero)
         ax.text(
@@ -96,20 +109,40 @@ def plot_paired_delta():
 
 
 def plot_ablations():
-    if not os.path.exists(ABLATIONS_S33_PATH):
+    source = None
+    source_label = None
+    for candidate, label in [
+        (ABLATIONS_SUBMISSION_PATH, "submission replicated"),
+        (ABLATIONS_PATH, "current ablation set"),
+        (ABLATIONS_S33_PATH, "single-seed exploratory"),
+    ]:
+        if os.path.exists(candidate):
+            tmp = pd.read_csv(candidate)
+            if not tmp.empty:
+                ab = tmp
+                source = candidate
+                source_label = label
+                break
+    if source is None:
         return
-    ab = pd.read_csv(ABLATIONS_S33_PATH)
+
     grp = (
         ab.groupby("ablation_name", as_index=False)["val_ppl"]
         .agg(["mean", "std"])
         .reset_index()
         .sort_values("mean", ascending=False)
     )
+    # Clean labels: local_only -> Local only, ssm_only -> SSM only, sum_fusion -> Sum fusion
+    def _clean_label(name):
+        return name.replace("_", " ").strip().title()
+    tick_labels = [_clean_label(n) for n in grp["ablation_name"]]
     fig, ax = plt.subplots(figsize=(6, 4))
-    ax.bar(grp["ablation_name"], grp["mean"], yerr=grp["std"].fillna(0), capsize=4, color="#7A9E9F")
-    ax.set_ylabel("Validation perplexity (PPL)")
-    ax.set_title("Ablation Study (single-seed, ctx=1024)")
-    ax.set_xticklabels(grp["ablation_name"], rotation=20, ha="right")
+    x_pos = range(len(tick_labels))
+    ax.bar(x_pos, grp["mean"], yerr=grp["std"].fillna(0), capsize=4, color="#7A9E9F")
+    ax.set_ylabel("Perplexity")
+    ax.set_title("Ablation study")
+    ax.set_xticks(x_pos)
+    ax.set_xticklabels(tick_labels, rotation=25, ha="right")
     ax.grid(axis="y", alpha=0.3, linestyle="--", linewidth=0.5)
     fig.tight_layout()
     fig.savefig(os.path.join(OUTDIR, "ablation_ppl.png"), dpi=200)
@@ -128,9 +161,9 @@ def plot_training_curves_single(context_len: int, seed: int = 33):
     ax.plot(bl["step"], bl["loss"], label="baseline", color="#4C72B0", alpha=0.9)
     if "loss" in hy.columns and len(hy) > 1:
         ax.plot(hy["step"], hy["loss"], label="hybrid", color="#DD8452", alpha=0.9)
-    ax.set_xlabel("Training step")
-    ax.set_ylabel("Training loss")
-    ax.set_title(f"Training Loss vs Step (ctx={context_len}, seed={seed})")
+    ax.set_xlabel("Step")
+    ax.set_ylabel("Loss")
+    ax.set_title(f"Training loss ({context_len} tokens, seed {seed})")
     ax.legend()
     ax.grid(alpha=0.3, linestyle="--", linewidth=0.5)
     fig.tight_layout()
@@ -153,9 +186,9 @@ def plot_training_curves_single_zoom(context_len: int, seed: int = 33, tail_step
     ax.plot(bl_tail["step"], bl_tail["loss"], label="baseline", color="#4C72B0", alpha=0.9)
     if "loss" in hy_tail.columns and len(hy_tail) > 1:
         ax.plot(hy_tail["step"], hy_tail["loss"], label="hybrid", color="#DD8452", alpha=0.9)
-    ax.set_xlabel("Training step")
-    ax.set_ylabel("Training loss")
-    ax.set_title(f"Training Loss (last {tail_steps} steps, ctx={context_len}, seed={seed})")
+    ax.set_xlabel("Step")
+    ax.set_ylabel("Loss")
+    ax.set_title(f"Training loss — last {tail_steps} steps ({context_len} tokens)")
     # tighten y-limits around the minimum loss region for better resolution
     min_loss = min(bl_tail["loss"].min(), hy_tail["loss"].min())
     ax.set_ylim(bottom=max(0.0, min_loss - 1.0), top=min_loss + 4.0)
@@ -186,9 +219,9 @@ def plot_speed_vs_context():
             label=mtype,
             color=color,
         )
-    ax.set_xlabel("Context length (tokens)")
-    ax.set_ylabel("Throughput (tokens / second)")
-    ax.set_title("Training Throughput vs Context Length (mean ± std)")
+    ax.set_xlabel("Context length")
+    ax.set_ylabel("Tokens per second")
+    ax.set_title("Throughput vs context")
     ax.legend(title="Model")
     ax.grid(alpha=0.3, linestyle="--", linewidth=0.5)
     fig.tight_layout()
@@ -222,15 +255,15 @@ def plot_avg_training_curves_combined():
             ax.plot(
                 ctx_sub["step"],
                 ctx_sub["loss_mean"],
-                label=f"ctx={ctx}",
+                label=f"{ctx} tokens",
                 color=color,
                 alpha=0.9,
             )
-        ax.set_ylabel("Avg loss")
-        ax.set_title(f"{title_prefix}: Average Training Loss vs Step (3 seeds)")
+        ax.set_ylabel("Loss")
+        ax.set_title(f"{title_prefix} — average loss over 3 seeds")
         ax.grid(alpha=0.3, linestyle="--", linewidth=0.5)
         ax.legend()
-    axes[-1].set_xlabel("Training step")
+    axes[-1].set_xlabel("Step")
     fig.tight_layout()
     fig.savefig(os.path.join(OUTDIR, "avg_training_curves_by_context.png"), dpi=200)
     plt.close(fig)
@@ -254,4 +287,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-

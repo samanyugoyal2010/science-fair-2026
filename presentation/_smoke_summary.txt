@@ -1,0 +1,3 @@
+device=cpu
+quality_target_val_ppl<=8.0
+decision=winner=hybrid (meets quality target; lowest estimated_cost_per_1m_tokens_usd among qualified models)

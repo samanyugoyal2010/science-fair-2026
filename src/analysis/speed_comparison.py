@@ -12,7 +12,7 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument(
         "--runs",
-        default="results/raw/runs_s33_with_epochs.csv",
+        default="results/raw/runs_submission.csv",
         help="CSV with model_type, step_time_ms, toks_per_sec",
     )
     args = parser.parse_args()
@@ -61,8 +61,32 @@ def main():
     else:
         print(f"  → Hybrid has {pct_tps:.1f}% higher throughput.")
 
-    # If you had a "10.7% faster" number from inference, you'd note it here
-    print("\n  (If you measured 10.7% in a different test, e.g. inference/generation, note that separately.)")
+    # Consumer-hardware framing and scientific caveats
+    print("\n--- Context for claims ---")
+    if "device" in df.columns:
+        devices = sorted(df["device"].dropna().astype(str).unique().tolist())
+        print(f"  Device(s) used: {', '.join(devices)}")
+    else:
+        print("  Device(s) used: not recorded in this CSV")
+
+    if "effective_epochs" in df.columns:
+        mean_eff = float(df["effective_epochs"].mean())
+        print(f"  Mean effective epochs: {mean_eff:.6f}")
+        if mean_eff < 0.01:
+            print("  Note: this is pilot-scale training on consumer hardware (results are preliminary).")
+
+    if "params_total" in df.columns and "context_len" in df.columns:
+        print("  Parameter gap by context (hybrid vs baseline):")
+        for ctx in sorted(df["context_len"].dropna().unique().tolist()):
+            b = df[(df.model_type == "baseline") & (df.context_len == ctx)]
+            h = df[(df.model_type == "hybrid") & (df.context_len == ctx)]
+            if len(b) == 0 or len(h) == 0:
+                continue
+            b_params = float(b.iloc[0]["params_total"])
+            h_params = float(h.iloc[0]["params_total"])
+            gap_pct = ((h_params - b_params) / b_params) * 100.0
+            print(f"    ctx={int(ctx)}: {gap_pct:+.2f}%")
+        print("  Note: report this gap whenever claiming fairness/matching.")
 
 
 if __name__ == "__main__":

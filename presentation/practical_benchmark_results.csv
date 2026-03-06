@@ -1,0 +1,3 @@
+model_type,val_ppl,quality_target,quality_target_met,generated_tokens,elapsed_sec,toks_per_sec,peak_mem_mb,estimated_cost_per_1m_tokens_usd
+baseline,15.71350832486277,8.0,False,256,4.921568457999999,52.01593804590334,143.828125,0.10894096847135416
+hybrid,9.140601103574976,8.0,False,256,10.810151042000001,23.681445245804547,1184.078125,0.23928719754427089
